@@ -41,20 +41,45 @@ make test
 make install
 ```
 
-### use as python module
+### current status:
 
 see `examples/tastest.py`:
 
 ```
-➜  examples git:(master) ✗ python tastest.py 
+➜  examples git:(master) ✗ python tastest.py
 TasmanianSG version: 6.0
 TasmanianSG license: BSD 3-Clause with UT-Battelle disclaimer
 
--------------------------------------------------------------------------------------------------
-Example 1 for OSM: interpolate f(x,y) = cos(0.5 * pi * x) * cos(0.5 * pi * y)
-       using fixed sparse grid with depth 5
-       the error is estimated as the maximum from 1000 random points
+          Grid Type:  Local Polynomial
+         Dimensions:   2
+            Outputs:   1
+       Loaded nodes:   0
+       Needed nodes:   145
+               Rule:  Local polynomials
+             Domain:  Canonical
+              Order:   1
+       Acceleration:  cpu-blas
 
- For localp    Number of points: 145   Max. Error: 7.9623370348109734e-03
+```
+
+julia:  
+
+```
+julia> Tasmanian.run()
+6.0.0
+Ptr{Void} @0x00007fcde8765270
+
+          Grid Type:  Local Polynomial
+         Dimensions:   2
+            Outputs:   1
+       Loaded nodes:   0
+       Needed nodes:   145
+               Rule:  Local polynomials
+             Domain:  Canonical
+              Order:   1
+       Acceleration:  cpu-blas
+
+
+
 ```
 

@@ -52,12 +52,34 @@ print("TasmanianSG version: {0:s}".format(TasmanianSG.__version__))
 print("TasmanianSG license: {0:s}".format(TasmanianSG.__license__))
 
 grid  = TasmanianSG.TasmanianSparseGrid()
+# grid.printStats()
 
 #############################################################################
+
+
+
+
+# Sparse Grid with dimension 2 and 1 output and refinement level 5
+iDim = 2
+iOut = 1
+iDepth = 5
+which_basis = 1 #1= linear basis functions -> Check the manual for other options
+
+
+# construct sparse grid
+grid.makeLocalPolynomialGrid(iDim, iOut, iDepth, which_basis, "localp")
+grid.printStats()
+aPoints = grid.getPoints()
+print(aPoints)
 
 # EXAMPLE 1 for OSM:
 # interpolate: f(x,y) = cos(0.5 * pi * x) * cos(0.5 * pi * y)
 # using piecewise linear basis functions.
+
+print("\n-------------------------------------------------------------------------------------------------")
+print("Example 1 for OSM: interpolate f(x,y) = cos(0.5 * pi * x) * cos(0.5 * pi * y)")
+print("       using fixed sparse grid with depth {0:1d}".format(iDepth))
+print("       the error is estimated as the maximum from 1000 random points\n")
 
 # 1000 2-dimensional sample points 
 aPnts = np.empty([1000, 2])  
@@ -70,22 +92,10 @@ aTres = np.empty([1000,])
 for iI in range(1000):
     aTres[iI] = math.cos(0.5 * math.pi * aPnts[iI][0]) * math.cos(0.5 * math.pi * aPnts[iI][1])
 
-# Sparse Grid with dimension 2 and 1 output and refinement level 5
-iDim = 2
-iOut = 1
-iDepth = 5
-which_basis = 1 #1= linear basis functions -> Check the manual for other options
-
-print("\n-------------------------------------------------------------------------------------------------")
-print("Example 1 for OSM: interpolate f(x,y) = cos(0.5 * pi * x) * cos(0.5 * pi * y)")
-print("       using fixed sparse grid with depth {0:1d}".format(iDepth))
-print("       the error is estimated as the maximum from 1000 random points\n")
-
-# construct sparse grid
-grid.makeLocalPolynomialGrid(iDim, iOut, iDepth, which_basis, "localp")
-aPoints = grid.getPoints()
 iNumP1 = aPoints.shape[0]
 aVals = np.empty([aPoints.shape[0], 1])
+print("aVals")
+print(aVals)
 for iI in range(aPoints.shape[0]):
     aVals[iI] = math.cos(0.5 * math.pi * aPoints[iI][0]) * math.cos(0.5 * math.pi * aPoints[iI][1])
 grid.loadNeededPoints(aVals)

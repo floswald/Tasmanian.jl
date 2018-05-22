@@ -1,5 +1,7 @@
 module Tasmanian
 
+    import Base.show
+
 	# using Plots
 
 	# proper build will have to build the library
@@ -35,26 +37,41 @@ module Tasmanian
 #     return unsafe_string(pointer(hostname))
 # end
 
+    function show(io::IO,TSG::TasmanianSG)
+        ccall((:tsgPrintStats,TASlib),Void,(Ptr{Void},),TSG.pGrid)
+    end
 
 	function del(TSG::TasmanianSG)
 		ccall((:tsgDestructTasmanianSparseGrid,TASlib),Void,(Ptr{Void},),TSG.pGrid)
 	end
 
-    getNumDimensions(tsg::TasmanianSG) = ccall((:tsgGetNumDimensions,TASlib),Int32,(Ptr{Void},),tsg.pGrid)
-    getNumLoaded(tsg::TasmanianSG) = ccall((:tsgGetNumLoaded,TASlib),Int32,(Ptr{Void},),tsg.pGrid)
-    getNumPoints(tsg::TasmanianSG) = ccall((:tsgGetNumPoints,TASlib),Int32,(Ptr{Void},),tsg.pGrid)
+    getNumDimensions(tsg::TasmanianSG) = convert(Int,ccall((:tsgGetNumDimensions,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
+    getNumLoaded(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumLoaded,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
+    getNumPoints(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumPoints,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
+    getNumOutputs(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumOutputs,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
+    getNumNeeded(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumNeeded,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
 
     # make polynomial grid 
-    function makeLocalPolynomialGrid!(TSG::TasmanianSG,iDimension::Int,iOutputs::Int,iDepth::Int;iOrder::Int=1,sRule="localp",levelLimits=Int[])
+    function makeLocalPolynomialGrid!(TSG::TasmanianSG,
+        iDimension::Int,
+        iOutputs::Int,
+        iDepth::Int;
+        iOrder::Int=1,
+        sRule::AbstractString="localp",
+        ilevelLimits=Int[])
 
-        n = length(levelLimits)
+        n = length(ilevelLimits)
+        levelLimits = C_NULL
         if n > 0
             if n != iDimension
                 throw(ArgumentError("invalid number of levellimites. levelLimits = $levelLimits is invalid. must be equal to iDimension"))
+            else
+                levelLimits = ilevelLimits
             end
         end
 
-        ccall((:tsgMakeLocalPolynomialGrid,TASlib),Void,(Ptr{Void},Cint,Cint,Cint,Cint,Cstring,Ptr{Cint}),TSG.pGrid, iDimension, iOutputs, iDepth, iOrder, sRule, levelLimits)
+        ccall((:tsgMakeLocalPolynomialGrid,TASlib),Void,(Ptr{Void},Cint,Cint,Cint,Cint,Cstring,Ptr{Void}),TSG.pGrid, iDimension, iOutputs, iDepth, iOrder, sRule, levelLimits)
+        # ccall((:tsgMakeLocalPolynomialGrid,TASlib),Void,(Ptr{Void},Cint,Cint,Cint,Cint,Cstring),TSG.pGrid, iDimension, iOutputs, iDepth, iOrder, sRule)
 
     end
 
@@ -66,15 +83,44 @@ module Tasmanian
         iOut = 1
         iDepth = 5
         which_basis = 1 #1= linear basis functions -> Check the manual for other options
-        # makeLocalPolynomialGrid!(tsg,iDim,iOut,iDepth,iOrder=which_basis,sRule="localp")
-        Tasmanian.makeLocalPolynomialGrid!(tsg,iDim,iOut,iDepth)
-        println("num dims = $(Tasmanian.getNumDimensions(tsg))")
-        println("num points = $(Tasmanian.getNumPoints(tsg))")
-        println("num loaded = $(Tasmanian.getNumLoaded(tsg))")
-        println("points:")
-        pts = Tasmanian.getPoints(tsg)
-        # del(tsg)
-        return pts
+        Tasmanian.makeLocalPolynomialGrid!(tsg,iDim,iOut,iDepth,iOrder=which_basis,sRule="localp")
+        # return getPoints(tsg)
+        return tsg
+    end
+
+    unitbox(x) = x*2 - 1
+
+    function ex()
+        tsg = Tasmanian.TasmanianSG()
+        println(tsg.version)
+        println(tsg.pGrid)
+        iDim = 2
+        iOut = 1
+        iDepth = 5
+        which_basis = 1 #1= linear basis functions -> Check the manual for other options
+        Tasmanian.makeLocalPolynomialGrid!(tsg,iDim,iOut,iDepth,iOrder=which_basis,sRule="localp")
+
+        # sparse grid points
+        spPoints = getPoints(tsg)
+
+        # measure perf at N randomly chosen points
+        N = 1000
+        randPnts = unitbox.(rand(N,2))
+
+        # truth
+        truth = [cos(0.5 * pi * randPnts[i,1]) * cos(0.5 * pi * randPnts[i,2]) for i in 1:N]
+
+        # values on sparse grid
+        spVals = [cos(0.5 * pi * spPoints[i,1]) * cos(0.5 * pi * spPoints[i,2]) for i in 1:size(spPoints,1)]
+
+        # load points needed for such values
+        loadNeededPoints!(tsg,spVals)
+
+        # evaluate interpolation
+        # res = evaluateBatch(tsg,spVals)
+
+        # # compute error 
+        # return(maximum(abs,res .- truth))
     end
 
     # def getNumPoints(self):
@@ -119,9 +165,75 @@ module Tasmanian
 	# make Wavelet grid 
 
 
-	# load neede points
-	# function loadNeededPoints(tsg::TasmanianSG)
-	# end
+	# load needed points
+	function loadNeededPoints!(tsg::TasmanianSG,vals::Array{Float64})
+        n = size(vals)
+        if length(n) > 1
+            if n[1] != getNumNeeded(tsg)
+                throw(ArgumentError("vals does not have $(getNumLoaded(tsg)) rows"))
+            elseif n[2] != getNumOutputs(tsg)
+                throw(ArgumentError("vals does not have $(getNumLoaded(tsg)) rows"))
+            end
+            # vals = vals[:]
+        else
+            if n[1] != getNumNeeded(tsg)
+                throw(ArgumentError("vals does not have $(getNumLoaded(tsg)) rows"))
+            end
+        end
+
+        ccall((:tsgLoadNeededPoints,TASlib),Void,(Ptr{Void},Ptr{Cdouble}),tsg.pGrid,vals)
+	end
+
+    function evaluateBatch(tsg::TasmanianSG,Vals::Matrix{Float64})
+
+        if getNumLoaded(tsg) == 0
+            throw(MethodError("cannot call evaluateBatch for a grid before any points are loaded, i.e., call loadNeededPoints first!"))
+        end
+        n = size(vals)
+        if n[1] != getNumNeeded(tsg)
+            throw(ArgumentError("vals does not have $(getNumLoaded(tsg)) rows"))
+        elseif n[2] != getNumOutputs(tsg)
+            throw(ArgumentError("vals does not have $(getNumLoaded(tsg)) rows"))
+        end
+        # vals = vals[:]
+
+
+    end
+
+        # def evaluateBatch(self, llfX):
+        # '''
+        # evaluates the intepolant at the points of interest and returns
+        # the result
+
+        # this should be called after the grid has been created and after
+        # values have been loaded
+
+        # llfX: a 2-D numpy.ndarray
+        #       with second dimension equal to iDimensions
+        #       each row in the array is a single requested point
+
+        # output: a 2-D numpy.ndarray
+        #         with dimensions llfX.shape[0] X iOutputs
+        #         each row corresponds to the value of the interpolant
+        #         for one row of llfX
+
+        # '''
+        # if (self.getNumLoaded() == 0):
+        #     raise TasmanianInputError("evaluateBatch", "ERROR: cannot call evaluateBatch for a grid before any points are loaded, i.e., call loadNeededPoints first!")
+        # if (len(llfX.shape) != 2):
+        #     raise TasmanianInputError("llfX", "ERROR: llfX should be a 2-D numpy.ndarray instread it has dimension {0:1d}".format(len(llfX.shape)))
+        # iNumX = llfX.shape[0]
+        # if (iNumX == 0):
+        #     return np.empty([0, self.getNumOutputs()], np.float64)
+        # iNumDim = llfX.shape[1]
+        # if (iNumDim != self.getNumDimensions()):
+        #     raise TasmanianInputError("llfX", "ERROR: llfX.shape[1] should equal {0:1d} instead it equals {1:1d}".format(self.getNumDimensions(), iNumDim))
+        # iNumOutputs = self.getNumOutputs()
+        # aY = np.empty([iNumX, iNumOutputs], np.float64)
+        # # np.ctypeslib.as_ctypes(llfX.reshape([iNumX*iNumDim,])) messes up, the first 4 entries randomly get set to machine eps (10^-310) and 0
+        # lfX = llfX.reshape([iNumX*iNumDim,])
+        # self.pLibTSG.tsgEvaluateBatch(self.pGrid, np.ctypeslib.as_ctypes(lfX), iNumX, np.ctypeslib.as_ctypes(aY.reshape([iNumX*iNumOutputs,])))
+        # return aY
 
     # def loadNeededPoints(self, llfVals):
     #     '''
@@ -268,7 +380,7 @@ module Tasmanian
     		out = zeros(Float64,iNumPoints*iNumDims)
     		ccall((:tsgGetPointsStatic,TASlib),Void,(Ptr{Void},Ptr{Cdouble}),TSG.pGrid,out)
     	end
-    	return out
+    	return reshape(out,iNumDims,iNumPoints)'
     end
 
     # def getPoints(self):
