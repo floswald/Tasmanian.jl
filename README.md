@@ -21,6 +21,7 @@ git clone https://github.com/ORNL/TASMANIAN
 cd TASMANIAN
 mkdir build
 cd build
+
 cmake \
 -D CMAKE_INSTALL_PREFIX=/Applications/TSG \
 -D Tasmanian_STRICT_OPTIONS=OFF \
@@ -33,8 +34,8 @@ cmake \
 -D Tasmanian_ENABLE_MPI=OFF \
 -D Tasmanian_SHARED_LIBRARY=ON \
 -D Tasmanian_STATIC_LIBRARY=ON \
--D CMAKE_BUILD_TYPE=Debug \
-..
+-D CMAKE_BUILD_TYPE=Debug ..
+
 make
 make test
 make install
