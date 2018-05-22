@@ -36,6 +36,70 @@ module Tasmanian
 # end
 
 
+	function del(TSG::TasmanianSG)
+		ccall((:tsgDestructTasmanianSparseGrid,TASlib),Void,(Ptr{Void},),TSG.pGrid)
+	end
+
+    getNumDimensions(tsg::TasmanianSG) = ccall((:tsgGetNumDimensions,TASlib),Int32,(Ptr{Void},),tsg.pGrid)
+    getNumLoaded(tsg::TasmanianSG) = ccall((:tsgGetNumLoaded,TASlib),Int32,(Ptr{Void},),tsg.pGrid)
+    getNumPoints(tsg::TasmanianSG) = ccall((:tsgGetNumPoints,TASlib),Int32,(Ptr{Void},),tsg.pGrid)
+
+    # make polynomial grid 
+    function makeLocalPolynomialGrid!(TSG::TasmanianSG,iDimension::Int,iOutputs::Int,iDepth::Int;iOrder::Int=1,sRule="localp",levelLimits=Int[])
+
+        n = length(levelLimits)
+        if n > 0
+            if n != iDimension
+                throw(ArgumentError("invalid number of levellimites. levelLimits = $levelLimits is invalid. must be equal to iDimension"))
+            end
+        end
+
+        ccall((:tsgMakeLocalPolynomialGrid,TASlib),Void,(Ptr{Void},Cint,Cint,Cint,Cint,Cstring,Ptr{Cint}),TSG.pGrid, iDimension, iOutputs, iDepth, iOrder, sRule, levelLimits)
+
+    end
+
+    function run()
+        tsg = Tasmanian.TasmanianSG()
+        println(tsg.version)
+        println(tsg.pGrid)
+        iDim = 2
+        iOut = 1
+        iDepth = 5
+        which_basis = 1 #1= linear basis functions -> Check the manual for other options
+        # makeLocalPolynomialGrid!(tsg,iDim,iOut,iDepth,iOrder=which_basis,sRule="localp")
+        Tasmanian.makeLocalPolynomialGrid!(tsg,iDim,iOut,iDepth)
+        println("num dims = $(Tasmanian.getNumDimensions(tsg))")
+        println("num points = $(Tasmanian.getNumPoints(tsg))")
+        println("num loaded = $(Tasmanian.getNumLoaded(tsg))")
+        println("points:")
+        pts = Tasmanian.getPoints(tsg)
+        # del(tsg)
+        return pts
+    end
+
+    # def getNumPoints(self):
+    #     '''
+    #     if points have been loaded, returns the same as getNumLoaded()
+    #     otherwise, returns the same as getNumNeeded()
+
+    #     '''
+    #     return self.pLibTSG.tsgGetNumPoints(self.pGrid)
+
+    # def getNumLoaded(self):
+    #     '''
+    #     returns the number of points loaded in the existing interpolant
+
+    #     '''
+    #     return self.pLibTSG.tsgGetNumLoaded(self.pGrid)
+
+
+    # def getNumDimensions(self):
+    #     '''
+    #     returns the value of iDimension in the make***Grid command
+    #     if no grid has been made, it returns 0
+
+    #     '''
+    #     return self.pLibTSG.tsgGetNumDimensions(self.pGrid)
 
 	# methods
 	# -------
@@ -51,21 +115,41 @@ module Tasmanian
 
 	# make sequence grid
 
-	# make polynomial grid 
-	function makeLocalPolynomialGrid!(TSG::TasmanianSG,iDimension::Int,iOutputs::Int,iDepth::Int;iOrder=1,sRule="localp",levelLimits=Int[])
-
-		n = length(levelLimits)
-		if n > 0
-			if n != iDimension
-				throw(ArgumentError("invalid number of levellimites. levelLimits = $levelLimits is invalid. must be equal to iDimension"))
-			end
-		end
-
-		ccall((:tsgMakeLocalPolynomialGrid,TASlib),Void,(Ptr{Void},Cint,Cint,Cint,Cint,Ptr{UInt8},Ptr{Cint}),TSG.pGrid, iDimension, iOutputs, iDepth, iOrder, sRule, levelLimits)
-
-	end
 
 	# make Wavelet grid 
+
+
+	# load neede points
+	# function loadNeededPoints(tsg::TasmanianSG)
+	# end
+
+    # def loadNeededPoints(self, llfVals):
+    #     '''
+    #     loads the values of the target function at the needed points
+    #     if there are no needed points, this reset the currently loaded
+    #     values
+
+    #     llfVals: a 2-D numpy.ndarray
+    #              with dimensions getNumNeeded() X iOutputs
+    #              each row corresponds to the values of the outputs at
+    #              the corresponding needed point. The order and leading
+    #              dimension must match the points obtained form
+    #              getNeededPoints()
+
+    #     '''
+    #     if (len(llfVals.shape) != 2):
+    #         raise TasmanianInputError("llfVals", "ERROR: llfVals should be a 2-D numpy.ndarray, instead it has {0:1d} dimensions".format(len(llfVals.shape)))
+    #     if (llfVals.shape[0] != self.getNumNeeded()):
+    #         if (self.getNumNeeded() == 0):
+    #             if (llfVals.shape[0] != self.getNumLoaded()):
+    #                 raise TasmanianInputError("llfVals", "ERROR: leading dimension of llfVals is {0:1d} but the number of current points is {1:1d}".format(llfVals.shape[0], self.getNumNeeded()))
+    #         else:
+    #             raise TasmanianInputError("llfVals", "ERROR: leading dimension of llfVals is {0:1d} but the number of needed points is {1:1d}".format(llfVals.shape[0], self.getNumNeeded()))
+    #     if (llfVals.shape[1] != self.getNumOutputs()):
+    #         raise TasmanianInputError("llfVals", "ERROR: second dimension of llfVals is {0:1d} but the number of outputs is set to {1:1d}".format(llfVals.shape[1], self.getNumOutputs()))
+    #     iNumPoints = llfVals.shape[0]
+    #     iNumDims = llfVals.shape[1]
+    #     self.pLibTSG.tsgLoadNeededPoints(self.pGrid, np.ctypeslib.as_ctypes(llfVals.reshape([iNumPoints * iNumDims])))
 
 	# getters
 	# -------
@@ -96,15 +180,6 @@ module Tasmanian
     #     '''
     #     return self.pLibTSG.tsgGetOrder(self.pGrid)
 
-    getNumDimensions(tsg::TasmanianSG) = ccall((:tsgGetNumDimensions,TASlib),Int32,(Ptr{Void},),tsg.pGrid)
-
-    # def getNumDimensions(self):
-    #     '''
-    #     returns the value of iDimension in the make***Grid command
-    #     if no grid has been made, it returns 0
-
-    #     '''
-    #     return self.pLibTSG.tsgGetNumDimensions(self.pGrid)
 
     # def getNumOutputs(self):
     #     '''
@@ -140,15 +215,6 @@ module Tasmanian
     #     else:
     #         return ""
 
-    getNumLoaded(tsg::TasmanianSG) = ccall((:tsgGetNumLoaded,TASlib),Int32,(Ptr{Void},),tsg.pGrid)
-
-    # def getNumLoaded(self):
-    #     '''
-    #     returns the number of points loaded in the existing interpolant
-
-    #     '''
-    #     return self.pLibTSG.tsgGetNumLoaded(self.pGrid)
-
     # def getNumNeeded(self):
     #     '''
     #     returns the number of points needed to form the interpolant or
@@ -157,15 +223,6 @@ module Tasmanian
     #     '''
     #     return self.pLibTSG.tsgGetNumNeeded(self.pGrid)
 
-    getNumPoints(tsg::TasmanianSG) = ccall((:tsgGetNumPoints,TASlib),Int32,(Ptr{Void},),tsg.pGrid)
-
-    # def getNumPoints(self):
-    #     '''
-    #     if points have been loaded, returns the same as getNumLoaded()
-    #     otherwise, returns the same as getNumNeeded()
-
-    #     '''
-    #     return self.pLibTSG.tsgGetNumPoints(self.pGrid)
 
     # def getLoadedPoints(self):
     #     '''
@@ -208,7 +265,7 @@ module Tasmanian
     	if iNumPoints == 0
     		zeros(2)
     	else
-    		out = zeros(Float64,iNumPoints,iNumDims)
+    		out = zeros(Float64,iNumPoints*iNumDims)
     		ccall((:tsgGetPointsStatic,TASlib),Void,(Ptr{Void},Ptr{Cdouble}),TSG.pGrid,out)
     	end
     	return out
@@ -302,16 +359,6 @@ module Tasmanian
 
 
 
-    function run()
-    	tsg = Tasmanian.TasmanianSG()
-    	println(tsg.version)
-    	makeLocalPolynomialGrid!(tsg,2,1,1)
-    	println("num dims = $(getNumDimensions(tsg))")
-    	println("num points = $(getNumPoints(tsg))")
-    	println("num loaded = $(getNumLoaded(tsg))")
-    	println("points:")
-    	getPoints(tsg)
-    end
 
 
 
