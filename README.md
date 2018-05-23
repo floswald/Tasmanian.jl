@@ -1,8 +1,45 @@
-# Tasmanian [WIP]
+# Tasmanian.jl 
 
 [![Build Status](https://travis-ci.com/floswald/Tasmanian.jl.svg?branch=master)](https://travis-ci.com/floswald/Tasmanian.jl)
 
-wrapping [tasmanian](https://github.com/ORNL/Tasmanian)
+Wrapping the awesome [tasmanian](https://github.com/ORNL/Tasmanian) library.
+
+
+## Example: The *Darth Vader* Function
+
+Approximating the function at increasing levels of grid refinement at 1000 randomly chosen points.
+
+
+```julia
+julia> using Tasmanian
+julia> Tasmanian.ex2()
+INFO: error on initial grid:    0.06798, with 13 points
+INFO: refinement level 1 error: 0.02096, with 16 points
+INFO: refinement level 2 error: 0.00896, with 36 points
+INFO: refinement level 3 error: 0.00314, with 80 points
+INFO: refinement level 4 error: 0.00097, with 176 points
+INFO: refinement level 5 error: 0.00031, with 384 points
+INFO: refinement level 6 error: 9.0e-5, with 824 points
+INFO: refinement level 7 error: 2.0e-5, with 1688 points
+INFO: Saved animation to /Users/74097/.julia/v0.6/Tasmanian/examples/ex2.gif
+Plots.AnimatedGif("/Users/74097/.julia/v0.6/Tasmanian/examples/ex2.gif")
+```
+
+![](examples/ex2.gif)
+
+
+
+## Checklist
+
+- [x] Basis functionality wrapped: getters, setters
+- [x] Simple tests implemented
+- [x] `LocalPolynomialGrid` implemented
+- [x] grid refinement implemented
+- [ ] Automate build of library via `BinDeps`
+- [ ] Documentation
+- [ ] Other grid types missing: global, sequential and wavelet
+
+
 
 ## Installation
 
@@ -11,6 +48,8 @@ To install julia package
 ```julia
 Pkg.clone("git@github.com:floswald/Tasmanian.jl.git")
 ```
+
+The Tasmanian library needs to be manually installed for now.
 
 in terminal, to install the Tasmanian library.
 this will install the library into dir `/Applications/TSG`
@@ -41,45 +80,4 @@ make test
 make install
 ```
 
-### current status:
-
-see `examples/tastest.py`:
-
-```
-➜  examples git:(master) ✗ python tastest.py
-TasmanianSG version: 6.0
-TasmanianSG license: BSD 3-Clause with UT-Battelle disclaimer
-
-          Grid Type:  Local Polynomial
-         Dimensions:   2
-            Outputs:   1
-       Loaded nodes:   0
-       Needed nodes:   145
-               Rule:  Local polynomials
-             Domain:  Canonical
-              Order:   1
-       Acceleration:  cpu-blas
-
-```
-
-julia:  
-
-```
-julia> Tasmanian.run()
-6.0.0
-Ptr{Void} @0x00007fcde8765270
-
-          Grid Type:  Local Polynomial
-         Dimensions:   2
-            Outputs:   1
-       Loaded nodes:   0
-       Needed nodes:   145
-               Rule:  Local polynomials
-             Domain:  Canonical
-              Order:   1
-       Acceleration:  cpu-blas
-
-
-
-```
 

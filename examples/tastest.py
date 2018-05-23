@@ -46,6 +46,7 @@ import numpy as np
 # imports specifically needed by the examples
 import math
 from random import uniform
+from random import seed
 from datetime import datetime
 
 print("TasmanianSG version: {0:s}".format(TasmanianSG.__version__))
@@ -55,6 +56,8 @@ grid  = TasmanianSG.TasmanianSparseGrid()
 # grid.printStats()
 
 #############################################################################
+
+seed(1)
 
 
 
