@@ -52,7 +52,13 @@ Pkg.clone("git@github.com:floswald/Tasmanian.jl.git")
 The Tasmanian library needs to be manually installed for now.
 
 in terminal, to install the Tasmanian library.
-this will install the library into dir `/Applications/TSG`
+this will install the library into dir `/Applications/TSG`. You need to modify in `src/Tasmanian.jl` the line
+
+```julia
+  const TASlib = "/Applications/TSG/lib/libtasmaniansparsegrid.dylib"
+```
+
+with the corresponding path for your machine.
 
 
 ```
