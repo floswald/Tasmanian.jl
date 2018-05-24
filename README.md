@@ -5,7 +5,7 @@
 Wrapping the awesome [tasmanian](https://github.com/ORNL/Tasmanian) library.
 
 
-## Example: The *Darth Vader* Function
+## Example 1: The *Darth Vader* Function
 
 Approximating the function at increasing levels of grid refinement at 1000 randomly chosen points.
 
@@ -27,6 +27,10 @@ Plots.AnimatedGif("/Users/74097/.julia/v0.6/Tasmanian/examples/ex2.gif")
 
 ![](examples/ex2.gif)
 
+## Example 2: Genz test function
+
+
+![](examples/ex3.gif)
 
 
 ## Checklist

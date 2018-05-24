@@ -10,7 +10,8 @@
         return tsg
     end
 
-    unitbox(x) = x*2 - 1
+    negbox(x) = x*2 - 1
+    neg2unit(x) = (x+1)/2
 
     function ex1()
         iDim = 2
@@ -27,7 +28,7 @@
         tfun(x,y) = cos(0.5 * pi * x) * cos(0.5 * pi * y)
         srand(1)
         N = 1000
-        randPnts = unitbox.(rand(N,2))
+        randPnts = negbox.(rand(N,2))
 
         # truth
         truth = [tfun(randPnts[i,1],randPnts[i,2]) for i in 1:N]
@@ -72,7 +73,7 @@
 
         srand(2)
         N = 1000
-        randPnts = unitbox.(rand(N,2))
+        randPnts = negbox.(rand(N,2))
         # truth
         truth = [tfun(randPnts[i,1],randPnts[i,2]) for i in 1:N]
 
@@ -99,11 +100,78 @@
 
             # evaluate interpolation
             res = evaluateBatch(tsg,randPnts)
+	        pred = Tasmanian.evaluateBatch(tsg,spPoints)  # prediction on spGrid
             info("refinement level $k error: $(round(maximum(abs,res .- truth),5)), with $numpoints points")
-        	plot(scatter(spPoints[:,1],spPoints[:,2],title="level $k grid: $numpoints points",m=(:black,1,:+)),
-        		 scatter3d(randPnts[:,1],randPnts[:,2],res[:],title="level $k error: $(round(maximum(abs,res .- truth),5))",m=(:red,1)),
-        		 layout=(1,2),leg=false
+
+            # plot
+            zerone = (-1.1,1.1)
+        	plot(scatter(spPoints[:,1],spPoints[:,2],title="level $k grid:\n $numpoints points",m=(:black,1,:+),aspect_ratio=:equal,xlims=zerone,ylims=zerone),
+        		 scatter3d(randPnts[:,1],randPnts[:,2],res[:],title="max error: $(round(maximum(abs,res .- truth),5))",m=(:red,1),xlims=zerone,ylims=zerone,zlims=(0,1)),
+        		 scatter3d(spPoints[:,1],spPoints[:,2],pred[:],title="grid prediction",m=(:red,1,0.2),zlims=(0,1),xlims=zerone,ylims=zerone,zgrid=:black),
+        		 layout=(1,3),leg=false
         		 )
         end
         gif(anim,joinpath(dirname(@__FILE__),"ex2.gif"),fps=1)
+    end
+
+
+    function ex3()
+    	tfun(x,y) = 1.0 / (abs(0.5 - x^4 - y^4) + 0.1)
+        dim =  2       
+        outs = 1       
+        iDepth = 2
+        tol = 1e-5    
+        K = 9  # max refinement steps
+        tsg = Tasmanian.TasmanianSG(dim,outs,iDepth)
+
+        which_basis = 1 #1= linear basis functions -> Check the manual for other options
+        Tasmanian.makeLocalPolynomialGrid!(tsg,iOrder=which_basis,sRule="localp")
+
+        # domain is [0,1] here
+        setDomainTransform!(tsg,[0 1.0;0 1])
+
+        # sparse grid points from that object
+        spPoints = Tasmanian.getPoints(tsg)
+        srand(2)
+        N = 1000
+        randPnts = rand(N,2)
+        # truth
+        truth = [tfun(randPnts[i,1],randPnts[i,2]) for i in 1:N]
+
+        # values on sparse grid
+        spVals = [tfun(spPoints[i,1],spPoints[i,2]) for i in 1:size(spPoints,1)]
+        # load points needed for such values
+        loadNeededPoints!(tsg,spVals)
+
+        # evaluate interpolation
+        res = evaluateBatch(tsg,randPnts)
+        # res = evaluateBatch(tsg,randPnts)
+
+        numpoints = size(spPoints,1)
+
+        info("error on initial grid:    $(round(maximum(abs,res .- truth),5)), with $numpoints points")
+
+        # refinefment loop
+        anim = @animate for k in 1:K
+            Tasmanian.setSurplusRefinement!(tsg,tol,sCriteria="classic")
+	        spPoints = Tasmanian.getNeededPoints(tsg)
+            spVals = [tfun(spPoints[i,1],spPoints[i,2]) for i in 1:size(spPoints,1)]
+            # load points needed for such values
+            Tasmanian.loadNeededPoints!(tsg,spVals)
+            numpoints =+ size(spPoints,1)
+
+            # evaluate interpolation
+	        res = Tasmanian.evaluateBatch(tsg,randPnts)
+	        pred = Tasmanian.evaluateBatch(tsg,spPoints)  # prediction on spGrid
+	        # res = evaluateBatch(tsg,randPnts)
+	        zerone = (-0.1,1.1)
+            info("refinement level $k error: $(round(maximum(abs,res .- truth),5)), with $numpoints points")
+        	plot(scatter(spPoints[:,1],spPoints[:,2],title="level $k grid: $numpoints points",m=(:black,1,:+),aspect_ratio=:equal,xlims=zerone,ylims=zerone),
+        		 scatter3d(randPnts[:,1],randPnts[:,2],res[:],title="max error: $(round(maximum(abs,res .- truth),5))",m=(:black,1,0.2),zlims=(0,10),camera=(30,70),xlims=zerone,ylims=zerone),
+        		 scatter3d(spPoints[:,1],spPoints[:,2],pred[:],title="grid prediction",m=(:red,1,0.2),zlims=(0,10),camera=(30,70),xlims=zerone,ylims=zerone,zforeground_color_grid=:black),
+        		 layout=(1,3),leg=false
+        		 )
+        end
+        gif(anim,joinpath(dirname(@__FILE__),"ex3.gif"),fps=1)
+
     end

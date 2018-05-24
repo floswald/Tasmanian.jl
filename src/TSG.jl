@@ -110,7 +110,7 @@ function getNeededPoints(TSG::TasmanianSG)
     iNumDims = getNumDimensions(TSG)
     iNumPoints = getNumNeeded(TSG)
     if iNumPoints == 0
-        zeros(2)
+        return zeros(2)
     else
         out = zeros(Float64,iNumPoints*iNumDims)
         ccall((:tsgGetNeededPointsStatic,TASlib),Void,(Ptr{Void},Ptr{Cdouble}),TSG.pGrid,out)
@@ -167,6 +167,19 @@ function evaluateBatch(tsg::TasmanianSG,vals::Matrix{Float64})
     ccall((:tsgEvaluateBatch,TASlib),Void,(Ptr{Void},Ptr{Cdouble},Cint,Ptr{Cdouble}),tsg.pGrid,v,nx,out)
     return reshape(out,nx,tsg.nout)
 
+end
+
+function setDomainTransform!(tsg::TasmanianSG,doms::Matrix{Float64})
+	n,m = size(doms)
+	if n != getNumDimensions(tsg)
+		throw(ArgumentError("doms must have `getNumDimensions(tsg)`=$(getNumDimensions(tsg)) rows"))
+	end
+	if m != 2
+		throw(ArgumentError("doms must have 2 columns"))
+	end
+	pA = doms[:,1]
+	pB = doms[:,2]
+	ccall((:tsgSetDomainTransform,TASlib),Void,(Ptr{Void},Ptr{Cdouble},Ptr{Cdouble}),tsg.pGrid,pA,pB)
 end
 
     # def evaluateBatch(self, llfX):
