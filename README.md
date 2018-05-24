@@ -29,6 +29,8 @@ Plots.AnimatedGif("/Users/74097/.julia/v0.6/Tasmanian/examples/ex2.gif")
 
 ## Example 2: Genz test function
 
+This approximates `f(x,y) = 1.0 / (abs(0.5 - x^4 - y^4) + 0.1)`.
+
 
 ![](examples/ex3.gif)
 

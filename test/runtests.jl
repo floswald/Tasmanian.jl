@@ -13,7 +13,7 @@ end
 	out = 1
 	depth = 5
 	tsg = Tasmanian.TasmanianSG(dim,out,depth)
-	@test tsg.version == VersionNumber("6.0.0")
+	@test tsg.version == VersionNumber("5.1.0")
 	Tasmanian.makeLocalPolynomialGrid!(tsg)
 	@test Tasmanian.isLocalPolynomial(tsg)
 	@test !Tasmanian.isGlobal(tsg)
