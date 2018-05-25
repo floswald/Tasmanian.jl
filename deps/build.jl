@@ -32,13 +32,14 @@ if haskey(download_info, platform_key())
     url, tarball_hash = download_info[platform_key()]
     if unsatisfied || !isinstalled(url, tarball_hash; prefix=prefix)
         # Download and install binaries
-        download(url,joinpath(ENV["HOME"], "lib.so.tar.gz"))
-        cd(ENV["HOME"])
-        run(`tar -xzf lib.so.tar.gz`)
-        cd("lib")
-        libs = readlines(`ldd libtasmaniansparsegrid.so`)
-        println("ldd output on travis:")
-        println(libs)
+        # debugging travis:
+        # download(url,joinpath(ENV["HOME"], "lib.so.tar.gz"))
+        # cd(ENV["HOME"])
+        # run(`tar -xzf lib.so.tar.gz`)
+        # cd("lib")
+        # libs = readlines(`ldd libtasmaniansparsegrid.so`)
+        # println("ldd output on travis:")
+        # println(libs)
         install(url, tarball_hash; prefix=prefix, force=true, verbose=verbose)
     end
 elseif unsatisfied

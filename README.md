@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.com/floswald/Tasmanian.jl.svg?branch=master)](https://travis-ci.com/floswald/Tasmanian.jl)
 
+[![Build status](https://ci.appveyor.com/api/projects/status/di1gkhjhn49ghbge?svg=true)](https://ci.appveyor.com/project/floswald/tasmanian-jl)
+
+
 Wrapping the awesome [tasmanian](https://github.com/ORNL/Tasmanian) library.
 
 
