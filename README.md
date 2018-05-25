@@ -44,7 +44,8 @@ This approximates `f(x,y) = 1.0 / (abs(0.5 - x^4 - y^4) + 0.1)`.
 - [x] Simple tests implemented
 - [x] `LocalPolynomialGrid` implemented
 - [x] grid refinement implemented
-- [ ] Automate build of library via `BinDeps`
+- [x] Automate build of library via `BinaryBuilder`
+- [ ] More tests
 - [ ] Documentation
 - [ ] Other grid types missing: global, sequential and wavelet
 
@@ -56,43 +57,8 @@ To install julia package
 
 ```julia
 Pkg.clone("git@github.com:floswald/Tasmanian.jl.git")
+Pkg.build("Tasmanian")
 ```
 
-The Tasmanian library needs to be manually installed for now.
-
-in terminal, to install the Tasmanian library.
-this will install the library into dir `/Applications/TSG`. You need to modify in `src/Tasmanian.jl` the line
-
-```julia
-  const TASlib = "/Applications/TSG/lib/libtasmaniansparsegrid.dylib"
-```
-
-with the corresponding path for your machine.
-
-
-```
-git clone https://github.com/ORNL/TASMANIAN
-cd TASMANIAN
-mkdir build
-cd build
-
-cmake \
--D CMAKE_INSTALL_PREFIX=/Applications/TSG \
--D Tasmanian_STRICT_OPTIONS=OFF \
--D Tasmanian_ENABLE_BLAS=ON \
--D Tasmanian_ENABLE_PYTHON=ON \
--D Tasmanian_ENABLE_MATLAB=OFF \
--D Tasmanian_ENABLE_FORTRAN=ON \
--D Tasmanian_ENABLE_CUBLAS=OFF \
--D Tasmanian_ENABLE_CUDA=OFF \
--D Tasmanian_ENABLE_MPI=OFF \
--D Tasmanian_SHARED_LIBRARY=ON \
--D Tasmanian_STATIC_LIBRARY=ON \
--D CMAKE_BUILD_TYPE=Debug ..
-
-make
-make test
-make install
-```
-
+The Tasmanian library will be downloaded as a precompiled binary version fitting to your system.
 
