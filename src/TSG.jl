@@ -1,5 +1,5 @@
 mutable struct TasmanianSG
-    pGrid   :: Ptr{Void}
+    pGrid   :: Ptr{Nothing}
     version :: VersionNumber
     dims    :: Int
     nout    :: Int
@@ -26,24 +26,24 @@ mutable struct TasmanianSG
 end
 
 function show(io::IO,TSG::TasmanianSG)
-    ccall((:tsgPrintStats,TASlib),Void,(Ptr{Void},),TSG.pGrid)
+    ccall((:tsgPrintStats,TASlib),Nothing,(Ptr{Nothing},),TSG.pGrid)
 end
 # function del(TSG::TasmanianSG)
-#   ccall((:tsgDestructTasmanianSparseGrid,TASlib),Void,(Ptr{Void},),TSG.pGrid)
+#   ccall((:tsgDestructTasmanianSparseGrid,TASlib),Nothing,(Ptr{Nothing},),TSG.pGrid)
 # end
 
-isGlobal(tsg::TasmanianSG)          = convert(Bool,ccall((:tsgIsGlobal,TASlib),Cint,(Ptr{Void},),tsg.pGrid))
-isSequence(tsg::TasmanianSG)        = convert(Bool,ccall((:tsgIsSequence,TASlib),Cint,(Ptr{Void},),tsg.pGrid))
-isLocalPolynomial(tsg::TasmanianSG) = convert(Bool,ccall((:tsgIsLocalPolynomial,TASlib),Cint,(Ptr{Void},),tsg.pGrid))
-isWavelet(tsg::TasmanianSG)         = convert(Bool,ccall((:tsgIsWavelet,TASlib),Cint,(Ptr{Void},),tsg.pGrid))
+isGlobal(tsg::TasmanianSG)          = convert(Bool,ccall((:tsgIsGlobal,TASlib),Cint,(Ptr{Nothing},),tsg.pGrid))
+isSequence(tsg::TasmanianSG)        = convert(Bool,ccall((:tsgIsSequence,TASlib),Cint,(Ptr{Nothing},),tsg.pGrid))
+isLocalPolynomial(tsg::TasmanianSG) = convert(Bool,ccall((:tsgIsLocalPolynomial,TASlib),Cint,(Ptr{Nothing},),tsg.pGrid))
+isWavelet(tsg::TasmanianSG)         = convert(Bool,ccall((:tsgIsWavelet,TASlib),Cint,(Ptr{Nothing},),tsg.pGrid))
 
-getNumDimensions(tsg::TasmanianSG) = convert(Int,ccall((:tsgGetNumDimensions,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
+getNumDimensions(tsg::TasmanianSG) = convert(Int,ccall((:tsgGetNumDimensions,TASlib),Int32,(Ptr{Nothing},),tsg.pGrid))
 getDims(tsg::TasmanianSG)          = tsg.dims
-getNumLoaded(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumLoaded,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
-getNumPoints(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumPoints,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
-getNumOutputs(tsg::TasmanianSG)    = convert(Int,ccall((:tsgGetNumOutputs,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
+getNumLoaded(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumLoaded,TASlib),Int32,(Ptr{Nothing},),tsg.pGrid))
+getNumPoints(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumPoints,TASlib),Int32,(Ptr{Nothing},),tsg.pGrid))
+getNumOutputs(tsg::TasmanianSG)    = convert(Int,ccall((:tsgGetNumOutputs,TASlib),Int32,(Ptr{Nothing},),tsg.pGrid))
 getNout(tsg::TasmanianSG)          = tsg.nout
-getNumNeeded(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumNeeded,TASlib),Int32,(Ptr{Void},),tsg.pGrid))
+getNumNeeded(tsg::TasmanianSG)     = convert(Int,ccall((:tsgGetNumNeeded,TASlib),Int32,(Ptr{Nothing},),tsg.pGrid))
 
 # make polynomial grid 
 function makeLocalPolynomialGrid!(TSG::TasmanianSG; iOrder::Int=1, sRule::AbstractString="localp", ilevelLimits=Int[])
@@ -58,7 +58,7 @@ function makeLocalPolynomialGrid!(TSG::TasmanianSG; iOrder::Int=1, sRule::Abstra
         end
     end
 
-    ccall((:tsgMakeLocalPolynomialGrid,TASlib),Void,(Ptr{Void},Cint,Cint,Cint,Cint,Cstring,Ptr{Void}),TSG.pGrid, TSG.dims, TSG.nout, TSG.depth, iOrder, sRule, levelLimits)
+    ccall((:tsgMakeLocalPolynomialGrid,TASlib),Nothing,(Ptr{Nothing},Cint,Cint,Cint,Cint,Cstring,Ptr{Nothing}),TSG.pGrid, TSG.dims, TSG.nout, TSG.depth, iOrder, sRule, levelLimits)
 
 end
 
@@ -83,13 +83,13 @@ function setSurplusRefinement!(TSG::TasmanianSG, tol::Float64; iOutput::Int=-1, 
         if !isSequence(TSG)
             throw(MethodError("sCriteria must be specified"))
         else
-            ccall((:tsgSetGlobalSurplusRefinement,TASlib),Void,(Ptr{Void},Cdouble,Cint,Ptr{Void}),TSG.pGrid,tol,iOutput,levelLimits)
+            ccall((:tsgSetGlobalSurplusRefinement,TASlib),Nothing,(Ptr{Nothing},Cdouble,Cint,Ptr{Nothing}),TSG.pGrid,tol,iOutput,levelLimits)
         end
     else
         if isSequence(TSG)
             throw(MethodError("sCriteria not used for Sequence Grids"))
         else
-            ccall((:tsgSetLocalSurplusRefinement,TASlib),Void,(Ptr{Void},Cdouble,Cstring,Cint,Ptr{Void}),TSG.pGrid,tol,sCriteria,iOutput,levelLimits)
+            ccall((:tsgSetLocalSurplusRefinement,TASlib),Nothing,(Ptr{Nothing},Cdouble,Cstring,Cint,Ptr{Nothing}),TSG.pGrid,tol,sCriteria,iOutput,levelLimits)
         end
     end
 end
@@ -101,7 +101,7 @@ function getPoints(TSG::TasmanianSG)
         zeros(2)
     else
         out = zeros(Float64,iNumPoints*iNumDims)
-        ccall((:tsgGetPointsStatic,TASlib),Void,(Ptr{Void},Ptr{Cdouble}),TSG.pGrid,out)
+        ccall((:tsgGetPointsStatic,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble}),TSG.pGrid,out)
     end
     return reshape(out,iNumDims,iNumPoints)'
 end
@@ -113,7 +113,7 @@ function getNeededPoints(TSG::TasmanianSG)
         return zeros(2)
     else
         out = zeros(Float64,iNumPoints*iNumDims)
-        ccall((:tsgGetNeededPointsStatic,TASlib),Void,(Ptr{Void},Ptr{Cdouble}),TSG.pGrid,out)
+        ccall((:tsgGetNeededPointsStatic,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble}),TSG.pGrid,out)
     end
     return reshape(out,iNumDims,iNumPoints)'
 end
@@ -148,7 +148,7 @@ function loadNeededPoints!(tsg::TasmanianSG,vals::Array{Float64})
         end
     end
 
-    ccall((:tsgLoadNeededPoints,TASlib),Void,(Ptr{Void},Ptr{Cdouble}),tsg.pGrid,vals)
+    ccall((:tsgLoadNeededPoints,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble}),tsg.pGrid,vals)
 end
 
 function evaluateBatch(tsg::TasmanianSG,vals::Matrix{Float64})
@@ -164,7 +164,7 @@ function evaluateBatch(tsg::TasmanianSG,vals::Matrix{Float64})
     v = reshape(vals',nx*nd,1)
     out = zeros(Float64,nx*tsg.nout)
 
-    ccall((:tsgEvaluateBatch,TASlib),Void,(Ptr{Void},Ptr{Cdouble},Cint,Ptr{Cdouble}),tsg.pGrid,v,nx,out)
+    ccall((:tsgEvaluateBatch,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble},Cint,Ptr{Cdouble}),tsg.pGrid,v,nx,out)
     return reshape(out,nx,tsg.nout)
 
 end
@@ -179,7 +179,7 @@ function setDomainTransform!(tsg::TasmanianSG,doms::Matrix{Float64})
 	end
 	pA = doms[:,1]
 	pB = doms[:,2]
-	ccall((:tsgSetDomainTransform,TASlib),Void,(Ptr{Void},Ptr{Cdouble},Ptr{Cdouble}),tsg.pGrid,pA,pB)
+	ccall((:tsgSetDomainTransform,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble},Ptr{Cdouble}),tsg.pGrid,pA,pB)
 end
 
     # def evaluateBatch(self, llfX):
