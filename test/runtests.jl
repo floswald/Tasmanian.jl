@@ -1,5 +1,4 @@
 using Tasmanian
-using TestSetExtensions
 @static if VERSION < v"0.7.0-DEV.2005"
     using Base.Test
 else
@@ -13,7 +12,7 @@ end
 	out = 1
 	depth = 5
 	tsg = Tasmanian.TasmanianSG(dim,out,depth)
-	@test tsg.version == VersionNumber("5.1.0")
+	@test tsg.version == VersionNumber("6.0")
 	Tasmanian.makeLocalPolynomialGrid!(tsg)
 	@test Tasmanian.isLocalPolynomial(tsg)
 	@test !Tasmanian.isGlobal(tsg)
