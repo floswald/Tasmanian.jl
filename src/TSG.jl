@@ -161,7 +161,7 @@ function evaluateBatch(tsg::TasmanianSG,vals::Matrix{Float64})
     if nd != getDims(tsg)
         throw(ArgumentError("vals does not have $(getNumOutputs(tsg)) columns"))
     end
-    v = reshape(vals',nx*nd,1)
+    v = Array(reshape(vals',nx*nd,1))
     out = zeros(Float64,nx*tsg.nout)
 
     ccall((:tsgEvaluateBatch,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble},Cint,Ptr{Cdouble}),tsg.pGrid,v,nx,out)

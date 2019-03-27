@@ -19,9 +19,12 @@ module Tasmanian
 
     import Base.show
 	using Plots
+	using Random
 
     # includes
     include("TSG.jl")
     include("../examples/examples.jl")
+
+    export TasmanianSG
 
 end # module
