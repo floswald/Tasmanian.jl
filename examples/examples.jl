@@ -50,7 +50,7 @@
         p = plot(p1,p2,p3,p4,layout=(2,2),legend=false)
 
         # # compute error 
-        return 0
+        return p
     end
 
     function ex2(;save=false)
@@ -112,7 +112,7 @@
         if save 
             gif(anim,joinpath(dirname(@__FILE__),"ex2.gif"),fps=1)
         end
-        return 0
+        return gif(anim,fps = 1)
     end
 
 
@@ -167,15 +167,15 @@
 	        # res = evaluateBatch(tsg,randPnts)
 	        zerone = (-0.1,1.1)
             @info("refinement level $k error: $(round(maximum(abs,res .- truth),digits = 5)), with $numpoints points")
-        	plot(scatter(spPoints[:,1],spPoints[:,2],title="level $k grid: $numpoints points",m=(:black,1,:+),aspect_ratio=:equal,xlims=zerone,ylims=zerone),
-        		 scatter3d(randPnts[:,1],randPnts[:,2],res[:],title="max error: $(round(maximum(abs,res .- truth),digits = 5))",m=(:black,1,0.2),zlims=(0,10),camera=(30,70),xlims=zerone,ylims=zerone),
-        		 scatter3d(spPoints[:,1],spPoints[:,2],pred[:],title="grid prediction",m=(:red,1,0.2),zlims=(0,10),camera=(30,70),xlims=zerone,ylims=zerone,zforeground_color_grid=:black),
+        	plot(scatter(spPoints[:,1],spPoints[:,2],title="level $k grid: $numpoints points",m=(:black,2,:+),aspect_ratio=:equal,xlims=zerone,ylims=zerone),
+        		 scatter3d(randPnts[:,1],randPnts[:,2],res[:],title="max error: $(round(maximum(abs,res .- truth),digits = 5))",m=(:black,1),zlims=(0,10),camera=(30,70),xlims=zerone,ylims=zerone),
+        		 scatter3d(spPoints[:,1],spPoints[:,2],pred[:],title="grid prediction",m=(:red,1),zlims=(0,10),camera=(30,70),xlims=zerone,ylims=zerone,zforeground_color_grid=:black),
         		 layout=(1,3),leg=false
         		 )
         end
         if save
             gif(anim,joinpath(dirname(@__FILE__),"ex3.gif"),fps=1)
         end
-        return 0
+        return gif(anim,fps = 1)
 
     end
