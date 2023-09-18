@@ -147,8 +147,8 @@ function loadNeededPoints!(tsg::TasmanianSG,vals::Array{Float64})
             end
         end
     end
-
-    ccall((:tsgLoadNeededPoints,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble}),tsg.pGrid,vals)
+    v = Matrix(vals')
+    ccall((:tsgLoadNeededPoints,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble}),tsg.pGrid,v)
 end
 
 function evaluateBatch(tsg::TasmanianSG,vals::Matrix{Float64})
@@ -161,11 +161,10 @@ function evaluateBatch(tsg::TasmanianSG,vals::Matrix{Float64})
     if nd != getDims(tsg)
         throw(ArgumentError("vals does not have $(getNumOutputs(tsg)) columns"))
     end
-    v = Array(reshape(vals',nx*nd,1))
+    v = Array(vals')
     out = zeros(Float64,nx*tsg.nout)
-
     ccall((:tsgEvaluateBatch,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble},Cint,Ptr{Cdouble}),tsg.pGrid,v,nx,out)
-    return reshape(out,nx,tsg.nout)
+    return Matrix(reshape(out, tsg.nout, nx)')
 
 end
 
@@ -182,12 +181,9 @@ function setDomainTransform!(tsg::TasmanianSG,doms::Matrix{Float64})
 	ccall((:tsgSetDomainTransform,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble},Ptr{Cdouble}),tsg.pGrid,pA,pB)
 end
 
-function copyGrid(TSG::TasmanianSG)
+function copyGrid(TSG::TasmanianSG; output_begin = 0, output_end = -1)
     newgrid = TasmanianSG(TSG.dims, TSG.nout, TSG.depth)
-    output_ptr = ccall((:tsgCopyGrid, TASlib), Nothing, (Ptr{Nothing}, Ptr{Nothing}), newgrid.pGrid, TSG.pGrid)
-    if output_ptr == C_NULL # Could not allocate memory
-	throw(OutOfMemoryError())
-    end
+    ccall((:tsgCopyGrid,TASlib), Nothing, (Ptr{Nothing}, Ptr{Nothing}), newgrid.pGrid, TSG.pGrid)
     return newgrid
 end
 
