@@ -113,9 +113,9 @@ function getNeededPoints(TSG::TasmanianSG)
         return zeros(2)
     else
         out = zeros(Float64,iNumPoints*iNumDims)
-        ccall((:tsgGetNeededPointsStatic,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble}),TSG.pGrid,out)
+        ccall((:tsgGetNeededPointsStatic, TASlib), Nothing, (Ptr{Nothing}, Ptr{Cdouble}), TSG.pGrid, out)
     end
-    return reshape(out,iNumDims,iNumPoints)'
+    return reshape(out, iNumDims, iNumPoints)'
 end
 
 
@@ -182,6 +182,16 @@ function setDomainTransform!(tsg::TasmanianSG,doms::Matrix{Float64})
 	ccall((:tsgSetDomainTransform,TASlib),Nothing,(Ptr{Nothing},Ptr{Cdouble},Ptr{Cdouble}),tsg.pGrid,pA,pB)
 end
 
+function copyGrid(TSG::TasmanianSG)
+    newgrid = TasmanianSG(TSG.dims, TSG.nout, TSG.depth)
+    output_ptr = ccall((:tsgCopyGrid, TASlib), Nothing, (Ptr{Nothing}, Ptr{Nothing}), newgrid.pGrid, TSG.pGrid)
+    if output_ptr == C_NULL # Could not allocate memory
+	throw(OutOfMemoryError())
+    end
+    return newgrid
+end
+
+    
     # def evaluateBatch(self, llfX):
     # '''
     # evaluates the intepolant at the points of interest and returns
