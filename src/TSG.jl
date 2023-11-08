@@ -62,7 +62,7 @@ function makeLocalPolynomialGrid!(TSG::TasmanianSG; iOrder::Int=1, sRule::Abstra
 
 end
 
-function setSurplusRefinement!(TSG::TasmanianSG, tol::Float64; iOutput::Int=-1, sCriteria::AbstractString="", ilevelLimits=Int[])
+function setSurplusRefinement!(TSG::TasmanianSG, tol::Float64; iOutput::Int=-1, sCriteria::AbstractString="", ilevelLimits=Int[], llfScaleCorrection = Float64[])
 
     if getNumLoaded(TSG) == 0
         throw(MethodError("cannot call setSurplusRefinement for a grid before any points are loaded, i.e., call loadNeededPoints first!"))
@@ -89,7 +89,7 @@ function setSurplusRefinement!(TSG::TasmanianSG, tol::Float64; iOutput::Int=-1, 
         if isSequence(TSG)
             throw(MethodError("sCriteria not used for Sequence Grids"))
         else
-            ccall((:tsgSetLocalSurplusRefinement,TASlib),Nothing,(Ptr{Nothing},Cdouble,Cstring,Cint,Ptr{Nothing}),TSG.pGrid,tol,sCriteria,iOutput,levelLimits)
+            ccall((:tsgSetLocalSurplusRefinement,TASlib),Nothing,(Ptr{Nothing},Cdouble,Cstring,Cint,Ptr{Nothing},Ptr{Nothing}),TSG.pGrid,tol,sCriteria,iOutput,levelLimits, llfScaleCorrection)
         end
     end
 end
