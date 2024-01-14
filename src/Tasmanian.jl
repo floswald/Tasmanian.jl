@@ -1,30 +1,20 @@
 module Tasmanian
 
-	if VERSION >= v"0.7.0-DEV.3382"
-    	import Libdl
-	end
+import Base.show
+using Plots
+using Random
+using Tasmanian_jll
 
-	# Load in `deps.jl`, complaining if it does not exist
-	const depsjl_path = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
-	if !isfile(depsjl_path)
-	    error("Tasmanian.jl not installed properly, run Pkg.build(\"Tasmanian\"), restart Julia and try again")
-	end
-	include(depsjl_path)
+const global TASlib = libtasmaniansparsegrid
 
-	# Module initialization function
-	function __init__()
-	    # Always check your dependencies from `deps.jl`
-	    check_deps()
-	end
+# includes
+include("TSG.jl")
+include("../examples/examples.jl")
 
-    import Base.show
-	using Plots
-	using Random
-
-    # includes
-    include("TSG.jl")
-    include("../examples/examples.jl")
-
-    export TasmanianSG
+export TasmanianSG, LocalRules, copyGrid, evaluateBatch, evaluateBatch!, getDims,
+getLoadedPoints, getNeededPoints, getNout, getNumDimensions, getNumLoaded,
+getNumNeeded, getNumOutputs, getNumPoints, getOrder, getPoints, isFourier,
+isGlobal, isLocalPolynomial, isSequence, isWavelet, loadNeededPoints!,
+makeLocalPolynomialGrid!, setDomainTransform!, setSurplusRefinement!
 
 end # module
