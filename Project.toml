@@ -4,9 +4,13 @@ authors = ["Florian Oswald <florian.oswald@gmail.com>"]
 version = "0.1.0"
 
 [deps]
-BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-GR = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
-Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Tasmanian_jll = "5b6edb9a-6f5c-5561-95ad-cece0030cdd0"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+Plots = "0.12.1, 1.39.0"
+Tasmanian_jll = "8.0.0"
+Test = "1.6.3, 1.10" 
+julia = "1.6.3"
